@@ -16,20 +16,6 @@ import (
 
 var env = config.New()
 
-type GoogleClientIDSecret struct {
-	Web GoogleClientIDSecretWeb `json:"web"`
-}
-
-type GoogleClientIDSecretWeb struct {
-	ClientID                string   `json:"client_id"`
-	ProjectID               string   `json:"project_id"`
-	AuthURI                 string   `json:"auth_uri"`
-	TokenURI                string   `json:"token_uri"`
-	AuthProviderX509CertURL string   `json:"auth_provider_x509_cert_url"`
-	ClientSecret            string   `json:"client_secret"`
-	RediectURIS             []string `json:"redirect_uris"`
-}
-
 type GoogleUserInfo struct {
 	Sub           string `json:"sub"`
 	Name          string `json:"name"`
@@ -40,17 +26,14 @@ type GoogleUserInfo struct {
 	Locale        string `json:"locale"`
 }
 
-func getGoogleOauthClientIDSecret() (*GoogleClientIDSecret, error) {
+func getGoogleOauthConfigFromClientIDSecretJSON() (*oauth2.Config, error) {
 	clientIDSecret := env.GetString("GOOGLE_OAUTH2_CLIENT_ID_SECRET")
 	clientIDSecretByte := []byte(clientIDSecret)
-
-	var googleClientIDSecret GoogleClientIDSecret
-	err := json.Unmarshal(clientIDSecretByte, &googleClientIDSecret)
+	conf, err := google.ConfigFromJSON(clientIDSecretByte, "https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile")
 	if err != nil {
 		return nil, err
 	}
-
-	return &googleClientIDSecret, nil
+	return conf, nil
 }
 
 func GetGoogleOauthRedirectURL() (string, error) {
@@ -71,34 +54,13 @@ func GetGoogleOauthState() (string, error) {
 	return state, nil
 }
 
-func getGoogleOauthConfig(redirectURL string) (*oauth2.Config, error) {
-	googleOauthClientIDSecret, err := getGoogleOauthClientIDSecret()
-	if err != nil {
-		return nil, err
-	}
-	web := googleOauthClientIDSecret.Web
-
-	return &oauth2.Config{
-		ClientID:     web.ClientID,
-		ClientSecret: web.ClientSecret,
-		RedirectURL:  redirectURL,
-		Scopes:       []string{"email", "profile"},
-		Endpoint:     google.Endpoint,
-	}, nil
-}
-
 func GetGoogleOauthURL() (string, error) {
-	redirectURL, err := GetGoogleOauthRedirectURL()
-	if err != nil {
-		return "", err
-	}
-
 	state, err := GetGoogleOauthState()
 	if err != nil {
 		return "", err
 	}
 
-	config, err := getGoogleOauthConfig(redirectURL)
+	config, err := getGoogleOauthConfigFromClientIDSecretJSON()
 	if err != nil {
 		return "", err
 	}
@@ -122,12 +84,7 @@ func IsValidGoogleOauthState(state string) error {
 }
 
 func GetGoogleOauthTokenByCode(code string) (*oauth2.Token, error) {
-	redirectURL, err := GetGoogleOauthRedirectURL()
-	if err != nil {
-		return nil, err
-	}
-
-	config, err := getGoogleOauthConfig(redirectURL)
+	config, err := getGoogleOauthConfigFromClientIDSecretJSON()
 	if err != nil {
 		return nil, err
 	}
@@ -141,12 +98,7 @@ func GetGoogleOauthTokenByCode(code string) (*oauth2.Token, error) {
 }
 
 func GetUserInfoByToken(token string) (*GoogleUserInfo, error) {
-	redirectURL, err := GetGoogleOauthRedirectURL()
-	if err != nil {
-		return nil, err
-	}
-
-	config, err := getGoogleOauthConfig(redirectURL)
+	config, err := getGoogleOauthConfigFromClientIDSecretJSON()
 	if err != nil {
 		return nil, err
 	}
