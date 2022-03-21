@@ -7,19 +7,19 @@ import (
 )
 
 func TestGetGoogleOauthClientIDSecret(t *testing.T) {
-	_, err := getGoogleOauthConfigFromClientIDSecretJSON()
+	_, err := getGoogleConfigFromClientIDSecretJSON()
 	if err != nil {
 		t.Errorf("TestGetGoogleOauthClientIDSecret error:%v", err)
 		return
 	}
 
-	t.Logf("success")
+	t.Log("success")
 }
 
 func TestGetGoogleOauthURL(t *testing.T) {
-	config, err := getGoogleOauthConfigFromClientIDSecretJSON()
+	config, err := getGoogleConfigFromClientIDSecretJSON()
 	if err != nil {
-		t.Errorf("TestGetGoogleOauthClientIDSecret getGoogleOauthConfigFromClientIDSecretJSON error:%v", err)
+		t.Errorf("TestGetGoogleOauthClientIDSecret getGoogleConfigFromClientIDSecretJSON error:%v", err)
 		return
 	}
 
@@ -44,7 +44,7 @@ func TestGetGoogleOauthURL(t *testing.T) {
 		return
 	}
 
-	t.Logf("success")
+	t.Log("success")
 }
 
 func TestGetUserInfoByToken(t *testing.T) {
@@ -54,5 +54,24 @@ func TestGetUserInfoByToken(t *testing.T) {
 		return
 	}
 
-	t.Logf("success")
+	t.Log("success")
+}
+
+func TestValidateGoogleOauthIDToken(t *testing.T) {
+	payload, err := ValidateGoogleOauthIDToken("")
+	if err != nil {
+		t.Errorf("TestValidateGoogleOauthIDToken ValidateGoogleOauthIDToken error:%v", err)
+		return
+	}
+	clientID, err := getGoogleClientIDSecretFromJSON()
+	if err != nil {
+		t.Errorf("TestValidateGoogleOauthIDToken getGoogleClientIDSecretFromJSON error:%v", err)
+		return
+	}
+	if payload.Audience != clientID {
+		t.Errorf("TestValidateGoogleOauthIDToken payload.Audience:%v != clientID:%v error", payload.Audience, clientID)
+		return
+	}
+
+	t.Log("success")
 }

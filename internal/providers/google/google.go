@@ -10,6 +10,7 @@ import (
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	"google.golang.org/api/idtoken"
 
 	"github.com/programzheng/go-auth/config"
 )
@@ -26,9 +27,28 @@ type GoogleUserInfo struct {
 	Locale        string `json:"locale"`
 }
 
-func getGoogleOauthConfigFromClientIDSecretJSON() (*oauth2.Config, error) {
+func getGoogleClientIDSecretFromJSON() (string, error) {
+	clientIDSecretByte := getGoogleClientIDSecretByteFromJSON()
+	data := make(map[string]map[string]interface{})
+	err := json.Unmarshal(clientIDSecretByte, &data)
+	if err != nil {
+		return "", err
+	}
+
+	if clientID, ok := data["web"]["client_id"].(string); ok {
+		return clientID, nil
+	} else {
+		return "", errors.New("getGoogleClientIDSecretFromJSON wrong type")
+	}
+}
+
+func getGoogleClientIDSecretByteFromJSON() []byte {
 	clientIDSecret := env.GetString("GOOGLE_OAUTH2_CLIENT_ID_SECRET")
-	clientIDSecretByte := []byte(clientIDSecret)
+	return []byte(clientIDSecret)
+}
+
+func getGoogleConfigFromClientIDSecretJSON() (*oauth2.Config, error) {
+	clientIDSecretByte := getGoogleClientIDSecretByteFromJSON()
 	conf, err := google.ConfigFromJSON(clientIDSecretByte, "https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile")
 	if err != nil {
 		return nil, err
@@ -60,7 +80,7 @@ func GetGoogleOauthURL() (string, error) {
 		return "", err
 	}
 
-	config, err := getGoogleOauthConfigFromClientIDSecretJSON()
+	config, err := getGoogleConfigFromClientIDSecretJSON()
 	if err != nil {
 		return "", err
 	}
@@ -84,7 +104,7 @@ func IsValidGoogleOauthState(state string) error {
 }
 
 func GetGoogleOauthTokenByCode(code string) (*oauth2.Token, error) {
-	config, err := getGoogleOauthConfigFromClientIDSecretJSON()
+	config, err := getGoogleConfigFromClientIDSecretJSON()
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +118,7 @@ func GetGoogleOauthTokenByCode(code string) (*oauth2.Token, error) {
 }
 
 func GetUserInfoByToken(token string) (*GoogleUserInfo, error) {
-	config, err := getGoogleOauthConfigFromClientIDSecretJSON()
+	config, err := getGoogleConfigFromClientIDSecretJSON()
 	if err != nil {
 		return nil, err
 	}
@@ -124,4 +144,17 @@ func GetUserInfoByToken(token string) (*GoogleUserInfo, error) {
 	json.Unmarshal(rawData, &googleUserInfo)
 
 	return &googleUserInfo, nil
+}
+
+func ValidateGoogleOauthIDToken(idToken string) (*idtoken.Payload, error) {
+	clientID, err := getGoogleClientIDSecretFromJSON()
+	if err != nil {
+		return nil, err
+	}
+
+	payload, err := idtoken.Validate(context.TODO(), idToken, clientID)
+	if err != nil {
+		return nil, err
+	}
+	return payload, err
 }
