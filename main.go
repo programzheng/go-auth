@@ -28,6 +28,7 @@ func main() {
 	googleGroup := apiGroup.Group("/google")
 	googleGroup.POST("get_oauth_url", google.GetOauthURL)
 	googleGroup.POST("get_user_info", google.GetUserInfoByToken)
+	googleGroup.POST("get_oauth_unique_id", google.GetGoogleOauthUniqueIDByIDToken)
 	googleGroup.POST("projects_oauth_login", google.GoogleProjectOauthLogin)
 
 	port := config.New().GetString("PORT")

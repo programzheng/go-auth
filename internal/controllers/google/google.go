@@ -12,6 +12,10 @@ import (
 	"github.com/programzheng/go-auth/internal/services/projectservice"
 )
 
+type GetGoogleOauthUniqueIDByIDTokenRequest struct {
+	IDToken string `json:"id_token"`
+}
+
 type GoogleProjectOauthLoginRequest struct {
 	Provider    *string `json:"provider"`
 	ProjectName *string `json:"project_name"`
@@ -86,6 +90,22 @@ func GetUserInfoByToken(c *gin.Context) {
 		"status":    "success",
 		"user_info": userInfo,
 	})
+}
+
+func GetGoogleOauthUniqueIDByIDToken(c *gin.Context) {
+	request := GetGoogleOauthUniqueIDByIDTokenRequest{}
+	controllers.GinBind(c, &request)
+
+	payload, err := google.ValidateGoogleOauthIDToken(request.IDToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, resources.GlobalResponse("error", err))
+		return
+	}
+
+	c.JSON(http.StatusOK, resources.GlobalResponse("success", resources.H{
+		"unique_id": payload.Subject,
+		"claims":    payload.Claims,
+	}))
 }
 
 func GoogleProjectOauthLogin(c *gin.Context) {
