@@ -39,7 +39,7 @@ func SetupTableModel(models ...interface{}) error {
 			log.Fatal(err)
 		}
 	} else {
-		if err := CreateTable(models); err != nil {
+		if err := CreateTable(models...); err != nil {
 			log.Fatal(err)
 		}
 	}
