@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+    #app
+    app:
+      build:
+        context: .
+        dockerfile: ./Dockerfile
+        args:
+          - WORKSPACE=${WORKSPACE}
+      restart: unless-stopped
+      env_file:
+        - .env
+      ports:
+        - ${PORT}:${PORT}
+      networks:
+        - backend
+
+networks:
+  backend:
+    external: true
