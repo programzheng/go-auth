@@ -11,3 +11,12 @@ func New() Config {
 
 	return config
 }
+
+func GetProductionStatus() bool {
+	env := New()
+	if env.GetString("ENV") == "production" {
+		return true
+	}
+
+	return false
+}
