@@ -4,15 +4,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/programzheng/go-auth/config"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 type MySQL struct {
 }
-
-var env = config.New()
 
 var (
 	globalDB *gorm.DB

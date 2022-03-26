@@ -4,8 +4,11 @@ import (
 	"errors"
 	"log"
 
+	"github.com/programzheng/go-auth/config"
 	"gorm.io/gorm"
 )
+
+var env = config.New()
 
 type DB interface {
 	GetDB() *gorm.DB
@@ -30,16 +33,17 @@ func CreateTable(dst ...interface{}) error {
 }
 
 func SetupTableModel(models ...interface{}) error {
-	if HasTable(models) {
-		return nil
-	}
 	//env is local
-	if env.GetString("ENV") == "local" {
-		if err := GetDB().AutoMigrate(models...); err != nil {
-			log.Fatal(err)
+	if config.GetProductionStatus() {
+		for _, model := range models {
+			if !HasTable(model) {
+				if err := CreateTable(model); err != nil {
+					log.Fatal(err)
+				}
+			}
 		}
 	} else {
-		if err := CreateTable(models...); err != nil {
+		if err := GetDB().AutoMigrate(models...); err != nil {
 			log.Fatal(err)
 		}
 	}
