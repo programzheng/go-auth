@@ -20,7 +20,7 @@ func CreateProject(c *gin.Context) {
 	request := CreateProjectRequest{}
 	controllers.GinBind(c, &request)
 
-	key := projectservice.GerenateKey()
+	key := projectservice.GenerateKey()
 	p := project.Project{
 		Provider:    request.Provider,
 		ProjectName: request.ProjectName,

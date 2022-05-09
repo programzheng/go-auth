@@ -8,6 +8,7 @@ import (
 	"github.com/programzheng/go-auth/config"
 	"github.com/programzheng/go-auth/internal/controllers/google"
 	"github.com/programzheng/go-auth/internal/controllers/project"
+	"github.com/programzheng/go-auth/internal/controllers/twitter"
 )
 
 var (
@@ -26,10 +27,18 @@ func main() {
 	projectGroup.POST("", project.CreateProject)
 
 	googleGroup := apiGroup.Group("/google")
-	googleGroup.POST("get_oauth_url", google.GetOauthURL)
-	googleGroup.POST("get_user_info", google.GetUserInfoByToken)
-	googleGroup.POST("get_oauth_unique_id", google.GetGoogleOauthUniqueIDByIDToken)
-	googleGroup.POST("projects_oauth_login", google.GoogleProjectOauthLogin)
+	{
+		googleGroup.POST("get_oauth_url", google.GetOauthURL)
+		googleGroup.POST("get_user_info", google.GetUserInfoByToken)
+		googleGroup.POST("get_oauth_unique_id", google.GetGoogleOauthUniqueIDByIDToken)
+		googleGroup.POST("projects_oauth_login", google.GoogleProjectOauthLogin)
+	}
+
+	twitterGroup := apiGroup.Group("/twitter")
+	twitterOauthGroup := twitterGroup.Group("/oauth")
+	{
+		twitterOauthGroup.POST("request_token", twitter.RequestToken)
+	}
 
 	port := config.New().GetString("PORT")
 

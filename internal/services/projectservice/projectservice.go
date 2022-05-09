@@ -13,7 +13,7 @@ type ProjectService struct {
 	Model project.Project
 }
 
-func GerenateKey() string {
+func GenerateKey() string {
 	t := time.Now()
 	ts := t.String()
 
