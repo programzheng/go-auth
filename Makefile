@@ -45,3 +45,6 @@ down:
 #移除多餘的image
 prune:
 	docker system prune
+
+build-image:
+	docker build -t programzheng/go-auth -f Dockerfile.linux --platform linux/amd64 .
